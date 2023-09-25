@@ -31,20 +31,18 @@ class FaceProcessor:
         self.predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
         self.detector = dlib.get_frontal_face_detector()
 
-    def align(self, image_path):
+    def align(self, dlib_image):
         print("Aligning image...")
         aligned_image = align_face(
-            filepath=str(image_path), detector=self.detector, predictor=self.predictor
+            dlib_image=dlib_image, detector=self.detector, predictor=self.predictor
         )
-        print(f"Finished aligning image: {image_path}")
         return aligned_image
 
-    def crop(self, image_path):
+    def crop(self, dlib_image):
         print("Cropping image...")
         cropped_image = crop_face(
-            filepath=str(image_path), detector=self.detector, predictor=self.predictor
+            dlib_image=dlib_image, detector=self.detector, predictor=self.predictor
         )
-        print(f"Finished cropping image: {image_path}")
         return cropped_image
 
     def compute_transforms(self, aligned_path, cropped_path):
@@ -88,6 +86,7 @@ class FaceEditorWrapper:
         original_image = original_image.convert("RGB").resize((256, 256))
         image_path = Path("./images/face_image.jpg")
         original_image.save(image_path)
+        dlib_image = dlib.load_rgb_image(image_path)
         input_image = self.face_processor.align(image_path)
         cropped_image = self.face_processor.crop(image_path)
 

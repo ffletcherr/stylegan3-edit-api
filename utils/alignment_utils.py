@@ -8,11 +8,13 @@ from PIL import Image
 from utils.common import make_transform
 
 
-def get_landmark(filepath, detector, predictor):
+def get_landmark(img, detector, predictor):
     """get landmark with dlib
     :return: np.array shape=(68, 2)
     """
-    img = dlib.load_rgb_image(filepath)
+    if isinstance(img, str):
+        img = dlib.load_rgb_image(img)
+
     dets = detector(img, 1)
 
     for k, d in enumerate(dets):
@@ -51,8 +53,8 @@ def get_rotation_from_eyes(left_eye_unaligned, right_eye_unaligned, left_eye_ali
     return r
 
 
-def get_alignment_positions(filepath: str, detector, predictor, eyes_distance_only: bool = True):
-    lm = get_landmark(filepath, detector, predictor)
+def get_alignment_positions(dlib_image, detector, predictor, eyes_distance_only: bool = True):
+    lm = get_landmark(dlib_image, detector, predictor)
 
     lm_mouth_outer = lm[48: 60]  # left-clockwise
 
@@ -94,10 +96,10 @@ def get_fixed_cropping_transformation(c, x):
     return quad, qsize
 
 
-def crop_face_by_transform(filepath: str, quad: np.ndarray, qsize: int, output_size: int = 1024,
+def crop_face_by_transform(dlib_image, quad: np.ndarray, qsize: int, output_size: int = 1024,
                            transform_size: int = 1024, enable_padding: bool = True):
-    # read image
-    img = Image.open(filepath)
+    # convert dlib image to pillow image
+    img = Image.fromarray(dlib_image)
 
     # Shrink.
     shrink = int(np.floor(qsize / output_size * 0.5))
@@ -144,19 +146,19 @@ def crop_face_by_transform(filepath: str, quad: np.ndarray, qsize: int, output_s
     return img
 
 
-def align_face(filepath: str, detector, predictor):
-    c, x, y = get_alignment_positions(filepath, detector, predictor)
+def align_face(dlib_image, detector, predictor):
+    c, x, y = get_alignment_positions(dlib_image, detector, predictor)
     quad, qsize = get_alignment_transformation(c, x, y)
-    img = crop_face_by_transform(filepath, quad, qsize)
+    img = crop_face_by_transform(dlib_image, quad, qsize)
     return img
 
 
-def crop_face(filepath: str, detector, predictor, random_shift=0.0):
-    c, x, y = get_alignment_positions(filepath, detector, predictor)
+def crop_face(dlib_image, detector, predictor, random_shift=0.0):
+    c, x, y = get_alignment_positions(dlib_image, detector, predictor)
     if random_shift > 0:
         c = (c + np.hypot(*x) * 2 * random_shift * np.random.normal(0, 1, c.shape))
     quad, qsize = get_fixed_cropping_transformation(c, x)
-    img = crop_face_by_transform(filepath, quad, qsize)
+    img = crop_face_by_transform(dlib_image, quad, qsize)
     return img
 
 
