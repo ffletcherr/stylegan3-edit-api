@@ -26,7 +26,6 @@ def download_dlib_models():
 
 
 def run_alignment(image_path):
-    download_dlib_models()
     predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
     detector = dlib.get_frontal_face_detector()
     print("Aligning image...")
@@ -38,7 +37,6 @@ def run_alignment(image_path):
 
 
 def crop_image(image_path):
-    download_dlib_models()
     predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
     detector = dlib.get_frontal_face_detector()
     print("Cropping image...")
@@ -50,7 +48,6 @@ def crop_image(image_path):
 
 
 def compute_transforms(aligned_path, cropped_path):
-    download_dlib_models()
     predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
     detector = dlib.get_frontal_face_detector()
     print("Computing landmarks-based transforms...")
@@ -73,6 +70,7 @@ class FaceEditorWrapper:
         resize_outputs=False,
         model_path="./pretrained_models/restyle_pSp_ffhq.pt",
     ) -> None:
+        download_dlib_models()
         self.net, self.opts = load_encoder(checkpoint_path=model_path)
         self.opts.n_iters_per_batch = n_iters_per_batch
         self.opts.resize_outputs = resize_outputs
