@@ -25,42 +25,40 @@ def download_dlib_models():
         print("Done.")
 
 
-def run_alignment(image_path):
-    predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
-    detector = dlib.get_frontal_face_detector()
-    print("Aligning image...")
-    aligned_image = align_face(
-        filepath=str(image_path), detector=detector, predictor=predictor
-    )
-    print(f"Finished aligning image: {image_path}")
-    return aligned_image
+class FaceProcessor:
+    def __init__(self):
+        download_dlib_models()
+        self.predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
+        self.detector = dlib.get_frontal_face_detector()
 
+    def align(self, image_path):
+        print("Aligning image...")
+        aligned_image = align_face(
+            filepath=str(image_path), detector=self.detector, predictor=self.predictor
+        )
+        print(f"Finished aligning image: {image_path}")
+        return aligned_image
 
-def crop_image(image_path):
-    predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
-    detector = dlib.get_frontal_face_detector()
-    print("Cropping image...")
-    cropped_image = crop_face(
-        filepath=str(image_path), detector=detector, predictor=predictor
-    )
-    print(f"Finished cropping image: {image_path}")
-    return cropped_image
+    def crop(self, image_path):
+        print("Cropping image...")
+        cropped_image = crop_face(
+            filepath=str(image_path), detector=self.detector, predictor=self.predictor
+        )
+        print(f"Finished cropping image: {image_path}")
+        return cropped_image
 
-
-def compute_transforms(aligned_path, cropped_path):
-    predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
-    detector = dlib.get_frontal_face_detector()
-    print("Computing landmarks-based transforms...")
-    res = get_stylegan_transform(
-        str(cropped_path), str(aligned_path), detector, predictor
-    )
-    print("Done!")
-    if res is None:
-        print(f"Failed computing transforms on: {cropped_path}")
-        return
-    else:
-        rotation_angle, translation, transform, inverse_transform = res
-        return inverse_transform
+    def compute_transforms(self, aligned_path, cropped_path):
+        print("Computing landmarks-based transforms...")
+        res = get_stylegan_transform(
+            str(cropped_path), str(aligned_path), self.detector, self.predictor
+        )
+        print("Done!")
+        if res is None:
+            print(f"Failed computing transforms on: {cropped_path}")
+            return
+        else:
+            rotation_angle, translation, transform, inverse_transform = res
+            return inverse_transform
 
 
 class FaceEditorWrapper:
@@ -70,7 +68,7 @@ class FaceEditorWrapper:
         resize_outputs=False,
         model_path="./pretrained_models/restyle_pSp_ffhq.pt",
     ) -> None:
-        download_dlib_models()
+        self.face_processor = FaceProcessor()
         self.net, self.opts = load_encoder(checkpoint_path=model_path)
         self.opts.n_iters_per_batch = n_iters_per_batch
         self.opts.resize_outputs = resize_outputs
@@ -90,12 +88,8 @@ class FaceEditorWrapper:
         original_image = original_image.convert("RGB").resize((256, 256))
         image_path = Path("./images/face_image.jpg")
         original_image.save(image_path)
-        input_image = run_alignment(image_path)
-        cropped_image = crop_image(image_path)
-        joined = np.concatenate(
-            [input_image.resize((256, 256)), cropped_image.resize((256, 256))], axis=1
-        )
-        Image.fromarray(joined)
+        input_image = self.face_processor.align(image_path)
+        cropped_image = self.face_processor.crop(image_path)
 
         images_dir = Path("./images")
         images_dir.mkdir(exist_ok=True, parents=True)
@@ -103,7 +97,7 @@ class FaceEditorWrapper:
         aligned_path = images_dir / f"aligned_{image_path.name}"
         cropped_image.save(cropped_path)
         input_image.save(aligned_path)
-        landmarks_transform = compute_transforms(
+        landmarks_transform = self.face_processor.compute_transforms(
             aligned_path=aligned_path, cropped_path=cropped_path
         )
         transformed_image = self.transform(input_image)
