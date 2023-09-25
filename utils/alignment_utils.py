@@ -14,6 +14,12 @@ def get_landmark(img, detector, predictor):
     """
     if isinstance(img, str):
         img = dlib.load_rgb_image(img)
+    elif isinstance(img, Image.Image):
+        img = np.array(img)
+    elif isinstance(img, np.ndarray):
+        pass
+    else:
+        raise TypeError("img should be str or np.ndarray or PIL.Image")
 
     dets = detector(img, 1)
 
@@ -204,13 +210,10 @@ def crop_face(dlib_image, detector, predictor, random_shift=0.0):
     return img
 
 
-def get_stylegan_transform(
-    unaligned_dlib_image, aligned_dlib_image, detector, predictor
-):
-    aligned_img = Image.fromarray(aligned_dlib_image)
-    aligned_img_lm = get_landmark(aligned_dlib_image, detector, predictor)
+def get_stylegan_transform(unaligned_image, aligned_image, detector, predictor):
+    aligned_img_lm = get_landmark(aligned_image, detector, predictor)
     aligned_left_eye, aligned_right_eye = get_eyes_coors(aligned_img_lm)
-    unaligned_img_lm = get_landmark(unaligned_dlib_image, detector, predictor)
+    unaligned_img_lm = get_landmark(unaligned_image, detector, predictor)
     unaligned_left_eye, unaligned_right_eye = get_eyes_coors(unaligned_img_lm)
 
     rotation_angle = get_rotation_from_eyes(
@@ -220,7 +223,7 @@ def get_stylegan_transform(
         right_eye_aligned=aligned_right_eye,
     )
 
-    rotated_aligned_dlib_image = aligned_img.rotate(rotation_angle)
+    rotated_aligned_dlib_image = aligned_image.rotate(rotation_angle)
     rotated_aligned_image = Image.fromarray(rotated_aligned_dlib_image)
 
     rotated_aligned_img_lm = get_landmark(rotated_aligned_image, detector, predictor)
@@ -228,7 +231,7 @@ def get_stylegan_transform(
         rotated_aligned_img_lm
     )
 
-    translation = (unaligned_left_eye - rotated_aligned_left_eye) / aligned_img.size[0]
+    translation = (unaligned_left_eye - rotated_aligned_left_eye) / aligned_image.size[0]
 
     transform = make_transform(translation, rotation_angle)
     inverse_transform = np.linalg.inv(transform)

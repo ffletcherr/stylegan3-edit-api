@@ -45,14 +45,14 @@ class FaceProcessor:
         )
         return cropped_image
 
-    def compute_transforms(self, aligned_path, cropped_path):
+    def compute_transforms(self, aligned_image, cropped_image):
         print("Computing landmarks-based transforms...")
         res = get_stylegan_transform(
-            cropped_path, aligned_path, self.detector, self.predictor
+            cropped_image, aligned_image, self.detector, self.predictor
         )
         print("Done!")
         if res is None:
-            print(f"Failed computing transforms on: {cropped_path}")
+            print(f"Failed computing transforms on cropped image")
             return
         else:
             rotation_angle, translation, transform, inverse_transform = res
@@ -92,7 +92,7 @@ class FaceEditorWrapper:
         images_dir = Path("./images")
         images_dir.mkdir(exist_ok=True, parents=True)
         landmarks_transform = self.face_processor.compute_transforms(
-            aligned_path=input_image, cropped_path=cropped_image
+            aligned_image=input_image, cropped_image=cropped_image
         )
         transformed_image = self.transform(input_image)
 
