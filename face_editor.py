@@ -85,8 +85,7 @@ class FaceEditorWrapper:
     def __call__(self, original_image, edit_direction="age", min_value=-5, max_value=5):
         original_image = original_image.convert("RGB").resize((256, 256))
         image_path = Path("./images/face_image.jpg")
-        original_image.save(image_path)
-        dlib_image = dlib.load_rgb_image(image_path.as_posix())
+        dlib_image = np.array(original_image)
         input_image = self.face_processor.align(dlib_image)
         cropped_image = self.face_processor.crop(dlib_image)
 
