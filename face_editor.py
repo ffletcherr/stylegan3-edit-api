@@ -48,7 +48,7 @@ class FaceProcessor:
     def compute_transforms(self, aligned_path, cropped_path):
         print("Computing landmarks-based transforms...")
         res = get_stylegan_transform(
-            str(cropped_path), str(aligned_path), self.detector, self.predictor
+            cropped_path, aligned_path, self.detector, self.predictor
         )
         print("Done!")
         if res is None:
@@ -91,12 +91,8 @@ class FaceEditorWrapper:
 
         images_dir = Path("./images")
         images_dir.mkdir(exist_ok=True, parents=True)
-        cropped_path = images_dir / f"cropped_{image_path.name}"
-        aligned_path = images_dir / f"aligned_{image_path.name}"
-        cropped_image.save(cropped_path)
-        input_image.save(aligned_path)
         landmarks_transform = self.face_processor.compute_transforms(
-            aligned_path=aligned_path, cropped_path=cropped_path
+            aligned_path=input_image, cropped_path=cropped_image
         )
         transformed_image = self.transform(input_image)
 

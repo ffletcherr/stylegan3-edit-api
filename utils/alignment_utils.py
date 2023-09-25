@@ -162,18 +162,12 @@ def crop_face(dlib_image, detector, predictor, random_shift=0.0):
     return img
 
 
-def get_stylegan_transform(unaligned_path: str, aligned_path: str, detector, predictor):
+def get_stylegan_transform(unaligned_dlib_image, aligned_dlib_image, detector, predictor):
     try:
-        # if the aligned image already exists, we can skip the prepare_data part to save time
-        if not os.path.exists(aligned_path):
-            aligned_img = align_face(unaligned_path, detector, predictor)
-            aligned_img.save(aligned_path)
-        else:
-            aligned_img = Image.open(aligned_path).convert("RGB")
-
-        aligned_img_lm = get_landmark(aligned_path, detector, predictor)
+        aligned_img = Image.fromarray(aligned_dlib_image)
+        aligned_img_lm = get_landmark(aligned_dlib_image, detector, predictor)
         aligned_left_eye, aligned_right_eye = get_eyes_coors(aligned_img_lm)
-        unaligned_img_lm = get_landmark(unaligned_path, detector, predictor)
+        unaligned_img_lm = get_landmark(unaligned_dlib_image, detector, predictor)
         unaligned_left_eye, unaligned_right_eye = get_eyes_coors(unaligned_img_lm)
 
         rotation_angle = get_rotation_from_eyes(left_eye_unaligned=unaligned_left_eye,
@@ -181,14 +175,11 @@ def get_stylegan_transform(unaligned_path: str, aligned_path: str, detector, pre
                                                 left_eye_aligned=aligned_left_eye,
                                                 right_eye_aligned=aligned_right_eye)
 
-        rotated_aligned_image = Image.open(aligned_path).rotate(rotation_angle)
-        unaligned_name = os.path.basename(unaligned_path).split('.')[0]
-        rotated_aligned_image.save(f"rotated_aligned_image_{unaligned_name}.png")
+        rotated_aligned_dlib_image = aligned_img.rotate(rotation_angle)
+        rotated_aligned_image = Image.fromarray(rotated_aligned_dlib_image)
 
-        rotated_aligned_img_lm = get_landmark(f"rotated_aligned_image_{unaligned_name}.png", detector, predictor)
+        rotated_aligned_img_lm = get_landmark(rotated_aligned_image, detector, predictor)
         rotated_aligned_left_eye, rotated_aligned_right_eye = get_eyes_coors(rotated_aligned_img_lm)
-
-        os.remove(f"rotated_aligned_image_{unaligned_name}.png")
 
         translation = (unaligned_left_eye - rotated_aligned_left_eye) / aligned_img.size[0]
 
@@ -198,5 +189,5 @@ def get_stylegan_transform(unaligned_path: str, aligned_path: str, detector, pre
         return rotation_angle, translation, transform, inverse_transform
 
     except Exception as e:
-        print(f"Failed aligning image: {aligned_path}. Got exception: {e}")
+        print(f"Failed aligning image. Got exception: {e}")
         return None
