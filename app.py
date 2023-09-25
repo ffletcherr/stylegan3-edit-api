@@ -53,8 +53,8 @@ def edit_task(original_image, edit_direction, min_value, max_value):
 async def edit_face(
     image_url: str = Form("https://www.ketabrah.ir/img/authors/a-26832.jpg"),
     edit_direction: str = Form("age"),
-    min_value: float = Form(-5.0),
-    max_value: float = Form(5.0),
+    min_value: int = Form(-5),
+    max_value: int = Form(5),
 ):
     # hash url of source_img and target_img
     image_filename = sha256(image_url.encode("utf-8")).hexdigest() + ".jpg"
