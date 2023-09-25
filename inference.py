@@ -1,24 +1,21 @@
 import dataclasses
 import os
 import pprint
-import subprocess
-import sys
 import time
 from pathlib import Path
 
-import dlib
 import numpy as np
 import torch
 import torchvision.transforms as transforms
-from oauth2client.client import GoogleCredentials
 from PIL import Image
 
 from editing.interfacegan.face_editor import FaceEditor
-from editing.styleclip_global_directions import edit as styleclip_edit
 from models.stylegan3.model import GeneratorType
 from utils.alignment_utils import align_face, crop_face, get_stylegan_transform
-from utils.common import tensor2im
 from utils.inference_utils import get_average_image, load_encoder, run_on_batch
+
+print("import dlib at last to fix crash bug")
+import dlib
 
 
 def download_dlib_models():
@@ -73,7 +70,7 @@ def compute_transforms(aligned_path, cropped_path):
 
 
 model_path = "./pretrained_models/restyle_pSp_ffhq.pt"
-image_path = "./images/face_image.jpg"
+image_path = Path("./images/face_image.jpg")
 transform = transforms.Compose(
     [
         transforms.Resize((256, 256)),
