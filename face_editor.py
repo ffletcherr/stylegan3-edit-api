@@ -86,9 +86,9 @@ class FaceEditorWrapper:
         original_image = original_image.convert("RGB").resize((256, 256))
         image_path = Path("./images/face_image.jpg")
         original_image.save(image_path)
-        dlib_image = dlib.load_rgb_image(image_path)
-        input_image = self.face_processor.align(image_path)
-        cropped_image = self.face_processor.crop(image_path)
+        dlib_image = dlib.load_rgb_image(image_path.as_posix())
+        input_image = self.face_processor.align(dlib_image)
+        cropped_image = self.face_processor.crop(dlib_image)
 
         images_dir = Path("./images")
         images_dir.mkdir(exist_ok=True, parents=True)
@@ -128,3 +128,4 @@ if __name__ == "__main__":
     original_image = Image.open(image_path)
     face_editor = FaceEditorWrapper()
     edit_images = face_editor(original_image)
+    edit_images[0][0].save("edited_image.jpg")
