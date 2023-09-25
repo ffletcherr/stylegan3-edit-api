@@ -117,7 +117,10 @@ def crop_face_by_transform(
     enable_padding: bool = True,
 ):
     # convert dlib image to pillow image
-    img = Image.fromarray(dlib_image)
+    if isinstance(dlib_image, np.ndarray):
+        img = Image.fromarray(dlib_image)
+    elif isinstance(dlib_image, Image.Image):
+        img = dlib_image
 
     # Shrink.
     shrink = int(np.floor(qsize / output_size * 0.5))
