@@ -1,14 +1,15 @@
 import base64
 import io
 import urllib.request
-from pathlib import Path
+from datetime import datetime
 from hashlib import sha256
+from pathlib import Path
+from time import time
 
 from fastapi import FastAPI, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from PIL import Image
-from datetime import datetime
 
 from face_editor import FaceEditorWrapper
 
@@ -35,6 +36,7 @@ def image_to_base64(image):
 
 
 def edit_task(original_image, edit_direction, min_value, max_value):
+    t1 = time()
     edit_images = face_editor(original_image, edit_direction, min_value, max_value)
     if edit_images is None:
         return None
@@ -44,6 +46,7 @@ def edit_task(original_image, edit_direction, min_value, max_value):
     old_image.save(datetime.now().strftime("%Y%m%d%H%M%S") + ".jpg")
     child_base64 = image_to_base64(child_image)
     old_base64 = image_to_base64(old_image)
+    print(f"edit task took {time() - t1} seconds")
     return child_base64, old_base64
 
 
