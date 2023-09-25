@@ -222,16 +222,15 @@ def get_stylegan_transform(unaligned_image, aligned_image, detector, predictor):
         left_eye_aligned=aligned_left_eye,
         right_eye_aligned=aligned_right_eye,
     )
-
-    rotated_aligned_dlib_image = aligned_image.rotate(rotation_angle)
-    rotated_aligned_image = Image.fromarray(rotated_aligned_dlib_image)
-
+    rotated_aligned_image = aligned_image.rotate(rotation_angle)
     rotated_aligned_img_lm = get_landmark(rotated_aligned_image, detector, predictor)
     rotated_aligned_left_eye, rotated_aligned_right_eye = get_eyes_coors(
         rotated_aligned_img_lm
     )
 
-    translation = (unaligned_left_eye - rotated_aligned_left_eye) / aligned_image.size[0]
+    translation = (unaligned_left_eye - rotated_aligned_left_eye) / aligned_image.size[
+        0
+    ]
 
     transform = make_transform(translation, rotation_angle)
     inverse_transform = np.linalg.inv(transform)
