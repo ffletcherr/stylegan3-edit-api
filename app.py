@@ -38,10 +38,8 @@ def edit_task(original_image, edit_direction, min_value, max_value):
     edit_images = face_editor(original_image, edit_direction, min_value, max_value)
     if edit_images is None:
         return None
-    if isinstance(edit_images[0], list):
-        edit_images = edit_images[0]
-    child_image = edit_images[3]
-    old_image = edit_images[-3]
+    child_image = edit_images[3][0]
+    old_image = edit_images[-3][0]
     child_image.save(datetime.now().strftime("%Y%m%d%H%M%S") + ".jpg")
     old_image.save(datetime.now().strftime("%Y%m%d%H%M%S") + ".jpg")
     child_base64 = image_to_base64(child_image)
