@@ -1,0 +1,11 @@
+dlib==19.24.2
+fastapi==0.103.1
+imageio==2.9.0
+numpy==1.23.3
+Pillow==9.5.0
+scipy==1.9.1
+torch==2.0.0
+torchvision==0.15.1
+uvicorn==0.16.0
+python-multipart==0.0.6
+pyrallis==0.3.1
